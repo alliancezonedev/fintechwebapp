@@ -15,14 +15,24 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import CircularProgress from "@mui/material/CircularProgress";
+import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
+import { useUserDataQuery, useUsersQuery } from "@/reduxSlice/apiSlice";
+import {
+  getEducationString,
+  getMaritalStatusString,
+  getSexString,
+} from "@/appConstants";
 
 function DataBox({
   dataKey,
   dataValue,
+  isLoading,
 }: {
   dataKey: string;
   dataValue: string;
+  isLoading: boolean;
 }) {
   return (
     <Grid2
@@ -30,6 +40,7 @@ function DataBox({
       size={{ xs: 3 }}
       py={5}
       justifyContent={"center"}
+      alignItems={"center"}
       sx={{ backgroundColor: grey[900] }}
     >
       <Typography
@@ -38,29 +49,16 @@ function DataBox({
       >
         {dataKey}:
       </Typography>
-      <Typography pl={3} variant="body1">
-        {dataValue}
-      </Typography>
+      {isLoading ? (
+        <CircularProgress disableShrink size={30} sx={{ ml: 3 }} />
+      ) : (
+        <Typography pl={3} variant="body1">
+          {dataValue}
+        </Typography>
+      )}
     </Grid2>
   );
 }
-
-function createData(
-  month: string,
-  billAmt: number,
-  paidAmt: number,
-  paymentDelay: number,
-) {
-  return { key: month, month, billAmt, paidAmt, paymentDelay };
-}
-
-const rows = [
-  createData("April", 159, 6.0, 24),
-  createData("May", 237, 9.0, 37),
-  createData("June", 262, 16.0, 24),
-  createData("July", 305, 3.7, 67),
-  createData("August", 356, 16.0, 49),
-];
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -83,10 +81,17 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 export default function Home() {
-  const [age, setAge] = useState("");
+  const [userId, setUserId] = useState("");
+  const { data: users } = useUsersQuery();
+  const { data: userData, isFetching } = useUserDataQuery(
+    { userId: parseInt(userId, 10) },
+    {
+      skip: userId === "" || userId === undefined || userId === null,
+    },
+  );
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setAge(event.target.value as string);
+  const handleChange = (event: SelectChangeEvent<string>) => {
+    setUserId(event.target.value as string);
   };
 
   return (
@@ -94,7 +99,6 @@ export default function Home() {
       <Grid2 container size={{ xs: 12 }}>
         <FormControl fullWidth>
           <InputLabel
-            id="demo-simple-select-label"
             sx={{
               color: "#FFFFFF",
             }}
@@ -102,77 +106,131 @@ export default function Home() {
             User
           </InputLabel>
           <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={age}
-            label="Age"
+            labelId="select-user"
+            id="select-user"
+            value={userId}
+            label="User"
             onChange={handleChange}
             sx={{
               backgroundColor: grey[900],
+              color: "#FFFFFF",
             }}
           >
-            <MenuItem value={10}>John</MenuItem>
-            <MenuItem value={20}>Vohn</MenuItem>
-            <MenuItem value={30}>Mohn</MenuItem>
+            {(users || []).map((user) => (
+              <MenuItem
+                value={`${user.USER_ID}`}
+                sx={{
+                  backgroundColor: grey[900],
+                  color: "#FFFFFF",
+                }}
+              >
+                {user.USER_NAME}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </Grid2>
       <Grid2 container size={{ xs: 12 }} mt={3}>
         <Typography variant="h5">User Details</Typography>
       </Grid2>
-      <Grid2 container size={{ xs: 12 }} mt={2} spacing={2}>
-        <DataBox dataKey={"Name"} dataValue="John" />
-        <DataBox dataKey={"Age"} dataValue="30" />
-        <DataBox dataKey={"Gender"} dataValue="Male" />
-        <DataBox dataKey={"Education"} dataValue="Graduate" />
-        <DataBox dataKey={"Marital Status"} dataValue="Married" />
-      </Grid2>
-      <Grid2 container size={{ xs: 12 }} mt={3}>
-        <Divider
-          sx={{
-            backgroundColor: "#FFFFFF",
-            width: "100%",
-            color: "#FFFFFF",
-          }}
-        />
-      </Grid2>
-      <Grid2 container size={{ xs: 12 }} mt={3}>
-        <Typography variant="h5">Payment History</Typography>
-      </Grid2>
-      <Grid2 container size={{ xs: 12 }} mt={2}>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <StyledTableRow>
-                <StyledTableCell>Month</StyledTableCell>
-                <StyledTableCell align="center">Bill Amount</StyledTableCell>
-                <StyledTableCell align="center">Paid Amount</StyledTableCell>
-                <StyledTableCell align="center">Payment Delay</StyledTableCell>
-              </StyledTableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row) => (
-                <StyledTableRow
-                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                >
-                  <StyledTableCell component="th" scope="row">
-                    {row.month}
-                  </StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row.billAmt}
-                  </StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row.paidAmt}
-                  </StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row.paymentDelay}
-                  </StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Grid2>
+      {userData ? (
+        <>
+          <Grid2 container size={{ xs: 12 }} mt={2} spacing={2}>
+            <DataBox
+              dataKey={"Name"}
+              dataValue={userData.USER_NAME}
+              isLoading={isFetching}
+            />
+            <DataBox
+              dataKey={"Age"}
+              dataValue={userData.AGE + ""}
+              isLoading={isFetching}
+            />
+            <DataBox
+              dataKey={"Gender"}
+              dataValue={getSexString(userData.SEX)}
+              isLoading={isFetching}
+            />
+            <DataBox
+              dataKey={"Education"}
+              dataValue={getEducationString(userData.EDUCATION)}
+              isLoading={isFetching}
+            />
+            <DataBox
+              dataKey={"Marital Status"}
+              dataValue={getMaritalStatusString(userData.MARITALSTATUS)}
+              isLoading={isFetching}
+            />
+            <Grid2
+              container
+              size={{ xs: 3 }}
+              justifyContent={"center"}
+              alignItems={"center"}
+              sx={{ backgroundColor: grey[900] }}
+            >
+              <Button variant="contained" sx={{ height: "100%" }} fullWidth>
+                Get Default Prediction
+              </Button>
+            </Grid2>
+          </Grid2>
+          <Grid2 container size={{ xs: 12 }} mt={3}>
+            <Divider
+              sx={{
+                backgroundColor: "#FFFFFF",
+                width: "100%",
+                color: "#FFFFFF",
+              }}
+            />
+          </Grid2>
+          <Grid2 container size={{ xs: 12 }} mt={3}>
+            <Typography variant="h5">Payment History</Typography>
+          </Grid2>
+          <Grid2 container size={{ xs: 12 }} mt={2}>
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <StyledTableRow>
+                    <StyledTableCell>Month</StyledTableCell>
+                    <StyledTableCell align="center">
+                      Bill Amount
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      Paid Amount
+                    </StyledTableCell>
+                    <StyledTableCell align="center">
+                      Payment Delay
+                    </StyledTableCell>
+                  </StyledTableRow>
+                </TableHead>
+                <TableBody>
+                  {userData.PAYMENT_DATA.map((payment) => (
+                    <StyledTableRow
+                      sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                    >
+                      <StyledTableCell component="th" scope="row">
+                        {payment.MONTH}
+                      </StyledTableCell>
+                      <StyledTableCell align="center">
+                        {payment.BILL_AMT}
+                      </StyledTableCell>
+                      <StyledTableCell align="center">
+                        {payment.PAID_AMT}
+                      </StyledTableCell>
+                      <StyledTableCell align="center">
+                        {payment.PAYMENTDELAY}
+                      </StyledTableCell>
+                    </StyledTableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Grid2>
+        </>
+      ) : (
+        <Grid2 container mt={3}>
+          <Typography>Please select a user to get info</Typography>
+        </Grid2>
+      )}
     </Grid2>
   );
 }
