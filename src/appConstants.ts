@@ -6,25 +6,25 @@ export class ApiResponse<T> {
   ) {}
 }
 
-enum Sex {
+export enum Sex {
   MALE = 1,
   FEMALE = 2,
 }
 
-enum Education {
+export enum Education {
   GRADUATE = 1,
   UNIVERSITY = 2,
   HIGH_SCHOOL = 3,
   OTHERS = 4,
 }
 
-enum MaritalStatus {
+export enum MaritalStatus {
   MARRIED = 1,
   SINGLE = 2,
   OTHERS = 3,
 }
 
-enum PaymentDefault {
+export enum PaymentDefault {
   YES = 1,
   NO = 0,
 }

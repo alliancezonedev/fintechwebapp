@@ -27,3 +27,8 @@ export interface IUserData {
 export interface IGetUserDataParams {
   userId: number;
 }
+
+export interface IUserPrediction {
+  PREDICTION: number;
+  CONFIDENCE: number;
+}

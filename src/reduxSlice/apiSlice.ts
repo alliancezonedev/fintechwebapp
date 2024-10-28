@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import queryString from "query-string";
 import config from "../lib/config";
-import { IGetUserDataParams, IUser, IUserData } from "@/types";
+import { IGetUserDataParams, IUser, IUserData, IUserPrediction } from "@/types";
 
 export const apiSlice = createApi({
   reducerPath: "api",
@@ -25,7 +25,13 @@ export const apiSlice = createApi({
       }),
       transformResponse: (res: unknown) => res as IUserData,
     }),
+    prediction: builder.query<IUserPrediction, IGetUserDataParams>({
+      query: ({ userId }) => ({
+        url: `/users/${userId}/prediction`,
+      }),
+      transformResponse: (res: unknown) => res as IUserPrediction,
+    }),
   }),
 });
 
-export const { useUsersQuery, useUserDataQuery } = apiSlice;
+export const { useUsersQuery, useUserDataQuery, usePredictionQuery } = apiSlice;

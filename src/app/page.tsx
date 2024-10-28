@@ -7,6 +7,9 @@ import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { grey } from "@mui/material/colors";
 import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 import Divider from "@mui/material/Divider";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -18,11 +21,16 @@ import Paper from "@mui/material/Paper";
 import CircularProgress from "@mui/material/CircularProgress";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
-import { useUserDataQuery, useUsersQuery } from "@/reduxSlice/apiSlice";
+import {
+  usePredictionQuery,
+  useUserDataQuery,
+  useUsersQuery,
+} from "@/reduxSlice/apiSlice";
 import {
   getEducationString,
   getMaritalStatusString,
   getSexString,
+  PaymentDefault,
 } from "@/appConstants";
 
 function DataBox({
@@ -82,6 +90,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 export default function Home() {
   const [userId, setUserId] = useState("");
+  const [predictionUserId, setPredictionUserId] = useState("");
   const { data: users } = useUsersQuery();
   const { data: userData, isFetching } = useUserDataQuery(
     { userId: parseInt(userId, 10) },
@@ -90,8 +99,25 @@ export default function Home() {
     },
   );
 
+  const { data: userPrediction, isFetching: isPredictionLoading } =
+    usePredictionQuery(
+      { userId: parseInt(predictionUserId, 10) },
+      {
+        skip:
+          predictionUserId === "" ||
+          predictionUserId === undefined ||
+          predictionUserId === null,
+      },
+    );
+  const [predictionDialogOpen, setPredictionDialogOpen] = useState(false);
+
   const handleChange = (event: SelectChangeEvent<string>) => {
     setUserId(event.target.value as string);
+  };
+
+  const onPredictionButtonClick = () => {
+    setPredictionUserId(userId);
+    setPredictionDialogOpen(true);
   };
 
   return (
@@ -168,7 +194,14 @@ export default function Home() {
               alignItems={"center"}
               sx={{ backgroundColor: grey[900] }}
             >
-              <Button variant="contained" sx={{ height: "100%" }} fullWidth>
+              <Button
+                variant="contained"
+                sx={{ height: "100%" }}
+                fullWidth
+                onClick={() => {
+                  onPredictionButtonClick();
+                }}
+              >
                 Get Default Prediction
               </Button>
             </Grid2>
@@ -225,6 +258,49 @@ export default function Home() {
               </Table>
             </TableContainer>
           </Grid2>
+          <Dialog
+            onClose={() => {
+              setPredictionDialogOpen(false);
+            }}
+            open={predictionDialogOpen}
+            sx={{
+              "& .MuiPaper-root": {
+                backgroundColor: grey[900],
+                color: "#FFFFFF",
+              },
+            }}
+          >
+            <DialogTitle>Default Prediction</DialogTitle>
+            <DialogContent>
+              {isPredictionLoading ? (
+                <Grid2 container size={{ xs: 12 }} mt={2}>
+                  <Typography variant="body1">
+                    Getting Prediction for User: {predictionUserId}
+                  </Typography>
+                  <CircularProgress disableShrink size={30} sx={{ ml: 3 }} />
+                </Grid2>
+              ) : (
+                <>
+                  <Grid2 container size={{ xs: 12 }} mt={2}>
+                    {userPrediction?.PREDICTION === PaymentDefault.YES ? (
+                      <Typography variant="body1" sx={{ color: "red" }}>
+                        This user is likely to default on their payment.
+                      </Typography>
+                    ) : (
+                      <Typography variant="body1" sx={{ color: "#1fb872" }}>
+                        This user is likely to pay their payment on time.
+                      </Typography>
+                    )}
+                  </Grid2>
+                  <Grid2 container size={{ xs: 12 }} mt={2}>
+                    <Typography variant="body1">
+                      Confidence = {userPrediction?.CONFIDENCE}
+                    </Typography>
+                  </Grid2>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
         <Grid2 container mt={3}>
