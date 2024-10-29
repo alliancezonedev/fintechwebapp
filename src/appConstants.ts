@@ -24,6 +24,15 @@ export enum MaritalStatus {
   OTHERS = 3,
 }
 
+export enum Month {
+  SEPTEMBER = 1,
+  AUGUST = 2,
+  JULY = 3,
+  JUNE = 4,
+  MAY = 5,
+  APRIL = 6,
+}
+
 export enum PaymentDefault {
   YES = 1,
   NO = 0,
@@ -49,4 +58,5 @@ function createEnumReverseMap<T extends { [key: string]: string | number }>(
 export const getSexString = createEnumReverseMap(Sex);
 export const getEducationString = createEnumReverseMap(Education);
 export const getMaritalStatusString = createEnumReverseMap(MaritalStatus);
+export const getMonthString = createEnumReverseMap(Month);
 export const getPaymentDefaultString = createEnumReverseMap(PaymentDefault);

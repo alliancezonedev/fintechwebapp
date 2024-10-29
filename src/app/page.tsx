@@ -29,6 +29,7 @@ import {
 import {
   getEducationString,
   getMaritalStatusString,
+  getMonthString,
   getSexString,
   PaymentDefault,
 } from "@/appConstants";
@@ -241,7 +242,7 @@ export default function Home() {
                       sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                     >
                       <StyledTableCell component="th" scope="row">
-                        {payment.MONTH}
+                        {getMonthString(payment.MONTH)}
                       </StyledTableCell>
                       <StyledTableCell align="center">
                         {payment.BILL_AMT}
